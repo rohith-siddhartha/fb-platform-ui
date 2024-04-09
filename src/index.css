@@ -30,6 +30,18 @@ body {
   flex-wrap: wrap;
 }
 
+.scrollable-div {
+  /* Set the height and width of the scrollable div */
+  height: 200px;
+
+  /* Enable vertical scrolling */
+  overflow-y: auto;
+
+  /* Optional: Add padding and border */
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
 .align-center {
   align-items: center;
 }

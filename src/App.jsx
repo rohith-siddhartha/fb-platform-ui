@@ -3,7 +3,7 @@ import Login from "./pages/Login"
 import ConsoleBoard from "./pages/ConsoleBoard"
 import Outlets from "./pages/Outlets"
 import { Outlet } from "./pages/Outlet"
-import { ProductDashBoard } from "./pages/Products"
+import { ProductDashBoard } from "./pages/product-page/ProductDashBoard"
 
 function App() {
 

@@ -36,6 +36,7 @@ export default {
         'primary-pale': '#3168D810',
         'red': '#fa4f46',
         'blue': '#7fbef5',
+        'green': '#08d450',
       }
     }
   },

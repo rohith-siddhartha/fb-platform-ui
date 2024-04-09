@@ -3,6 +3,7 @@ import "@fontsource/roboto-mono";
 import { darkTheme } from "../utility/themes";
 import { Link, useNavigate } from "react-router-dom";
 import React from "react";
+import axios from "axios";
 
 function Login(){
     return (
@@ -43,16 +44,26 @@ function LoginComponent(){
 
     function loginUser(){
 
-        navigate("/home");
+        axios.post(`http://localhost:8080/auth/login`,{
+            mobile
+        },
+        {withCredentials:true})
+        .then(data => {
+            console.log(data);
+            navigate("/");
+        })
+        .catch(error => {
+            console.log(error);
+        })
 
     }
 
     return (
         <div style={{width:"100%", marginTop:"20%", display:"flex", flexDirection:"column"}}>
             <h1 style={{fontFamily:"Roboto Mono", fontSize:"2em", fontWeight:"bolder"}}>Login</h1>
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"500"}}><b>Hi Mysore</b> | <span style={{cursor:"pointer", textDecoration:"underline", color:"blue"}}>not you?</span></h3>
-            { step==="mobile" && <MobileValidation 
-            validateMobile={validateMobile} 
+            {/* <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"500"}}><b>Hi Mysore</b> | <span style={{cursor:"pointer", textDecoration:"underline", color:"blue"}}>not you?</span></h3> */}
+            { step==="mobile" && <MobileValidation
+            login={loginUser}
             mobile={mobile}
             setMobile={setMob}
             /> }
@@ -66,14 +77,27 @@ function LoginComponent(){
 
 
 
-function MobileValidation( {validateMobile, mobile, setMobile} ){
+function MobileValidation( {mobile, setMobile, login} ){
+
+    function setMobileWithValidation(event) {
+        const mob = event.target.value;
+        if(mob.length>10) return;
+        setMobile(mob);
+    }
+
+    function validateMobile(mobileNumber) {
+        const mobileNumberRegex = /^[0-9]{10}$/;
+        return mobileNumberRegex.test(mobileNumber);
+    }
 
     return (
         <>
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Mobile Number</h3>
-            <TextField sx={{width:"50%", marginBottom:"35px"}} id="outlined-controlled" defaultValue={mobile} placeholder="Enter your mobile number" onChange={(e)=>setMobile(e.target.value)} />
+            <h3 style={{marginTop:'10px', marginBottom:'10px', fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Mobile Number</h3>
             <ThemeProvider theme={darkTheme}>
-                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" onClick={()=>{validateMobile();}}>NEXT</Button>
+                <TextField sx={{width:"50%", marginBottom:"20px", marginTop:'10px'}} id="outlined-controlled" defaultValue={mobile} value={mobile} placeholder="Enter your mobile number" onChange={setMobileWithValidation} />
+            </ThemeProvider>
+            <ThemeProvider theme={darkTheme}>
+                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" disabled={!validateMobile(mobile)} onClick={()=>{login()}}>NEXT</Button>
             </ThemeProvider>
         </>
     );
