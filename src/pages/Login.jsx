@@ -44,7 +44,7 @@ function LoginComponent(){
 
     function loginUser(){
 
-        axios.post(`http://localhost:8080/auth/login`,{
+        axios.post(`${import.meta.env.VITE_BACKEND}/auth/login`,{
             mobile
         },
         {withCredentials:true})

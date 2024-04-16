@@ -9,7 +9,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useReducer, useState } from 'react';
 import { Textarea } from '@mui/joy';
 import { Categories } from './Categories';
 import { Tags } from './Tags';
@@ -17,6 +17,14 @@ import { AddProductForm } from './AddProductForm';
 import { ProductCard } from './ProductCard';
 import { CheckBox } from '@mui/icons-material';
 import axios from 'axios';
+import { useContext } from 'react';
+
+const filterActions = {
+    SEARCH_KEY:'search_key',
+    CATEGORY:'category',
+    ADD_TAG:'add_tag',
+    REMOVE_TAG:'remove_tag'
+}
 
 export function ProductDashBoard() {
 
@@ -34,17 +42,41 @@ export function ProductDashBoard() {
     
 }
 
+const productContext = createContext();
+
 function Products() {
 
-    const categories = ['apple', 'ball'];
+    const [products, setProducts] = useState([]);
 
-    const products = ['vat', 'cat'];
+    function filterReducer(state, update) {
 
-    const [openCategories, setOpenCategories] = useState(false);
-    const [openTags, setOpenTags] = useState(false);
+        switch(update.type) {
+            case filterActions.SEARCH_KEY:
+                return {...state, searchKey:update.value};
+            case filterActions.CATEGORY:
+                return {...state, category:update.value};
+            case filterActions.ADD_TAG:
+                return {...state, tags:[...state.tags, update.value]};
+            case filterActions.REMOVE_TAG:
+                {
+                    let tags = state.tags;
+                    tags = tags.filter((tag) => tags.indexOf(tag)!==tags.indexOf(update.value));
+                    return {...state, tags:tags}
+                }
+            default:
+                return state;
+        }
+
+    }
+
+    const [filter, dispatch] = useReducer(filterReducer, {
+        category:null,
+        tags:[],
+        searchKey:''
+    });
+
+
     const [edit, setEdit] = useState(false);
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [anchorEl2, setAnchorEl2] = useState(null);
     const [editProduct, setEditProduct] = useState(null);
 
     const [openAddProductForm, setOpenAddProductForm] = useState(false);
@@ -59,6 +91,64 @@ function Products() {
         setEditProduct(null);
         setOpenAddProductForm(false);
     }
+
+    const getProducts = async ()=>{
+        axios.post(`${import.meta.env.VITE_BACKEND}/products/all`,filter,{withCredentials: true })
+        .then(res => {
+            setProducts(res.data); 
+        })
+        .catch(error => {
+            console.log(error);
+        })
+    }
+
+    useEffect(() => {
+        getProducts();
+    },[]);
+
+    return (
+        <div>
+            <productContext.Provider value={[filter, dispatch]}>
+            <div className='flex-row' style={{margin:"0px 0px 10px 0px"}}>
+                        <div className='flex-row' onClick={() => {setView(!view)}}>
+                            <h1 style={{margin:"auto 5px 5px 5px", fontSize:"24px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Products </h1>
+                        </div>
+                        <div className='flex-row' style={{marginLeft:"auto"}}>
+                        <ThemeProvider theme={darkTheme}>
+                            <Button 
+                                sx={{height:"35px", margin:"auto 10px"}}
+                                variant="contained"
+                                size="medium"
+                                color="primary"
+                                onClick={openForm}
+                                >
+                                    add +
+                            </Button>
+                        </ThemeProvider>
+                        <AddProductForm open={openAddProductForm} edit={edit} editProduct={editProduct} closeForm={closeForm} />
+                        </div>
+                </div>
+                <Filters getProducts={getProducts} />
+                <div>
+                    {products.map((product,index) => {
+                        return (
+                            <ProductCard product={product} key={index} />
+                        );
+                    })}
+                </div>
+            </productContext.Provider>
+        </div>
+    );
+}
+
+function Filters({getProducts}) {
+
+    const [openCategories, setOpenCategories] = useState(false);
+    const [openTags, setOpenTags] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorEl2, setAnchorEl2] = useState(null);
+    const [filter,dispatch] = useContext(productContext);
+    
 
     const handleClickCategories = (event) => {
         setAnchorEl2(event.currentTarget);
@@ -79,71 +169,56 @@ function Products() {
     };
 
     return (
-        <div>
-            <div className='flex-row' style={{margin:"0px 0px 10px 0px"}}>
-                        <div className='flex-row' onClick={() => {setView(!view)}}>
-                            <h1 style={{margin:"auto 5px 5px 5px", fontSize:"24px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Products </h1>
+        <div className='flex-row' style={{padding:"10px 0px", margin:"10px 0px"}}>
+            <OutlinedInput
+                onChange={(event)=>{dispatch({
+                    type:filterActions.SEARCH_KEY,
+                    value:event.target.value
+                })}}
+                value={filter.searchKey}
+                sx={{height:"50px"}}
+            />
+            <ThemeProvider theme={darkTheme}>
+                <Button sx={{height:"35px", margin:"auto 10px", fontSize:"16px"}} variant="contained" size="small" color="primary" onClick={getProducts} >search</Button>
+            </ThemeProvider>
+            <div style={{margin:"auto 10px"}}>
+                    <div className='flex-row' onClick={(e) => {handleClickCategories(e)}}>
+                        <h1 style={{margin:"auto 0px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Categories </h1>
+                        <div style={{borderRadius:"5px", padding:"auto 0px", margin:"auto 0px"}}>
+                            <ArrowDropDownIcon fontSize="large"/>
                         </div>
-                        <div className='flex-row' style={{marginLeft:"auto"}}>
-                        <ThemeProvider theme={darkTheme}>
-                            <Button 
-                                sx={{height:"35px", margin:"auto 10px"}}
-                                variant="contained"
-                                size="medium"
-                                color="primary"
-                                onClick={openForm}
-                                >
-                                    add +
-                            </Button>
-                        </ThemeProvider>
-                        <AddProductForm open={openAddProductForm} edit={edit} editProduct={editProduct} closeForm={closeForm} />
-                        </div>
-                </div>
-                <div className='flex-row' style={{padding:"10px 0px", margin:"10px 0px"}}>
-                    <OutlinedInput
-                        sx={{height:"50px"}}
-                    />
-                    <ThemeProvider theme={darkTheme}>
-                        <Button sx={{height:"35px", margin:"auto 10px", fontSize:"16px"}} variant="contained" size="small" color="primary" >search</Button>
-                    </ThemeProvider>
-                    <div style={{margin:"auto 10px"}}>
-                            <div className='flex-row' onClick={(e) => {handleClickCategories(e)}}>
-                                <h1 style={{margin:"auto 0px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Categories </h1>
-                                <div style={{borderRadius:"5px", padding:"auto 0px", margin:"auto 0px"}}>
-                                    <ArrowDropDownIcon fontSize="large"/>
-                                </div>
-                            </div>
-                        <SelectCategory open={openCategories} anchorEl={anchorEl2} handleClose={handleCloseCategories} />
                     </div>
-                    <div style={{margin:"auto 10px"}}>
-                        <div className='flex-row' onClick={(e) => {handleClickTags(e)}} style={{margin:"0px 10px"}}>
-                                <h1 style={{margin:"auto 0px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Tags </h1>
-                                <div style={{borderRadius:"5px", padding:"auto 0px", margin:"auto 0px"}}>
-                                    <ArrowDropDownIcon fontSize="large"/>
-                                </div>
+                <SelectCategory open={openCategories} anchorEl={anchorEl2} handleClose={handleCloseCategories} />
+            </div>
+            <div style={{margin:"auto 10px"}}>
+                <div className='flex-row' onClick={(e) => {handleClickTags(e)}} style={{margin:"0px 10px"}}>
+                        <h1 style={{margin:"auto 0px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Tags </h1>
+                        <div style={{borderRadius:"5px", padding:"auto 0px", margin:"auto 0px"}}>
+                            <ArrowDropDownIcon fontSize="large"/>
                         </div>
-                        <SelectTags open={openTags} anchorEl={anchorEl} handleClose={handleCloseTags} />
-                    </div>
                 </div>
-                <div>
-                    {products.map(p => {
-                        return (
-                            <ProductCard product={{}} />
-                        );
-                    })}
-                </div>
+                <SelectTags open={openTags} anchorEl={anchorEl} handleClose={handleCloseTags} />
+            </div>
         </div>
     );
 }
 
 function SelectCategory({open, anchorEl, handleClose}) {
 
-    const [category, setCategory] = useState(null);
     const [categories, setCategories] = useState([]);
+
+    const [filter,dispatch] = useContext(productContext);
+
+    function setCategory(category) {
+        dispatch({
+            type:filterActions.CATEGORY,
+            value:category._id
+        })
+    }
 
     function getCategories(){
 
-        axios.get(`http://localhost:8080/categories`,{ withCredentials: true })
+        axios.get(`${import.meta.env.VITE_BACKEND}/categories`,{ withCredentials: true })
         .then(res => {
             setCategories(res.data);            
         })
@@ -177,7 +252,7 @@ function SelectCategory({open, anchorEl, handleClose}) {
                 <div className="scrollable-div">
                     {categories.map((cate,index) => {
                         return (
-                            <div className={cate===category?'bg-blue':'hover:bg-blue'} style={{padding:"5px"}} key={index}
+                            <div className={( filter.category && cate._id===filter.category)?'bg-blue':'hover:bg-blue'} style={{padding:"5px"}} key={index}
                                 onClick={()=>setCategory(cate)}
                             >
                                 <h1 style={{margin:"auto 5px 5px 5px", fontSize:"15px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>{cate.name}</h1>
@@ -194,25 +269,25 @@ function SelectCategory({open, anchorEl, handleClose}) {
 function SelectTags({open, anchorEl, handleClose}) {
 
     const [tags,setTags] = useState([]);
-    const [values, setValues] = useState(new Set());
+    const [filter,dispatch] = useContext(productContext);
 
-    console.log(values);
+    function addTag(tag) {
+        dispatch({
+            type:filterActions.ADD_TAG,
+            value:tag._id
+        })
+    }
 
-    const addValue = (value) => {
-        setValues((prevValues) => new Set([...prevValues, value]));
-    };
-
-    const removeValue = (value) => {
-        setValues((prevValues) => {
-        const newValues = new Set(prevValues);
-        newValues.delete(value);
-        return newValues;
-        });
-    };
+    function removeTag(tag) {
+        dispatch({
+            type:filterActions.REMOVE_TAG,
+            value:tag._id
+        })
+    }
 
     function getTags(){
 
-        axios.get(`http://localhost:8080/tags`,{ withCredentials: true })
+        axios.get(`${import.meta.env.VITE_BACKEND}/tags`,{ withCredentials: true })
         .then(res => {
             setTags(res.data);            
         })
@@ -246,7 +321,7 @@ function SelectTags({open, anchorEl, handleClose}) {
                 <div>
                     {tags.map((tag,index) => {
                         return (
-                            <SelectTag tag={tag} key={index} addValue={addValue} removeValue={removeValue} />
+                            <SelectTag tag={tag} key={index} addValue={addTag} removeValue={removeTag} />
                         );
                     })}
                 </div>

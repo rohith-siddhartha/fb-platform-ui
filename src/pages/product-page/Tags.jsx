@@ -24,7 +24,7 @@ export function Tags() {
 
     function getTags(){
 
-        axios.get(`http://localhost:8080/tags`,{ withCredentials: true })
+        axios.get(`${import.meta.env.VITE_BACKEND}/tags`,{ withCredentials: true })
         .then(res => {
             setTags(res.data);            
         })
@@ -81,7 +81,7 @@ function Tile({tag, triggerReloadFunc}) {
 
     function updateTag() {
 
-        axios.patch(`http://localhost:8080/tags/${tag._id}`,
+        axios.patch(`${import.meta.env.VITE_BACKEND}/tags/${tag._id}`,
         {name:tagNew},
         { withCredentials: true })
         .then(res => {
@@ -97,7 +97,7 @@ function Tile({tag, triggerReloadFunc}) {
 
     function deleteTag() {
 
-        axios.delete(`http://localhost:8080/tags/${tag._id}`,
+        axios.delete(`${import.meta.env.VITE_BACKEND}/tags/${tag._id}`,
         { withCredentials: true })
         .then(res => {
             triggerReloadFunc();          
@@ -164,7 +164,7 @@ function AddTile({tag, setAdd, triggerReloadFunc}) {
 
     function createTag() {
 
-        axios.post(`http://localhost:8080/tags`,
+        axios.post(`${import.meta.env.VITE_BACKEND}/tags`,
         {name:tagNew},
         { withCredentials: true })
         .then(res => {    

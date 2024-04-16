@@ -24,7 +24,7 @@ export function Categories() {
 
     function getCategories(){
 
-        axios.get(`http://localhost:8080/categories`,{ withCredentials: true })
+        axios.get(`${import.meta.env.VITE_BACKEND}/categories`,{ withCredentials: true })
         .then(res => {
             setCategories(res.data);            
         })
@@ -80,7 +80,7 @@ function Tile({category, triggerReloadFunc}) {
 
     function updateCategory() {
 
-        axios.patch(`http://localhost:8080/categories/${category._id}`,
+        axios.patch(`${import.meta.env.VITE_BACKEND}/categories/${category._id}`,
         {name:categoryNew},
         { withCredentials: true })
         .then(res => {
@@ -96,7 +96,7 @@ function Tile({category, triggerReloadFunc}) {
 
     function deleteCategory() {
 
-        axios.delete(`http://localhost:8080/categories/${category._id}`,
+        axios.delete(`${import.meta.env.VITE_BACKEND}/categories/${category._id}`,
         { withCredentials: true })
         .then(res => {
             triggerReloadFunc();          
@@ -163,7 +163,7 @@ function AddTile({setAdd, triggerReload}) {
 
     function createCategory() {
 
-        axios.post(`http://localhost:8080/categories`,
+        axios.post(`${import.meta.env.VITE_BACKEND}/categories`,
         {name:tagNew},
         { withCredentials: true })
         .then(res => {    

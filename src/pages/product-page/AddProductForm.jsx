@@ -1,4 +1,4 @@
-import { Button, Dialog, MenuItem, OutlinedInput, Select } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogContent, MenuItem, OutlinedInput, Paper, Popover, Select } from '@mui/material';
 import { darkTheme } from '../../utility/themes';
 import { ThemeProvider } from '@emotion/react';
 import EditIcon from '@mui/icons-material/Edit';
@@ -6,8 +6,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Textarea } from '@mui/joy';
-import { createContext, useContext, useReducer, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
 import { UOM } from '../../utility/listsUtil';
+import axios from 'axios';
+import { CheckBox } from '@mui/icons-material';
 
 const updateActions = {
     NAME:'name',
@@ -15,7 +17,10 @@ const updateActions = {
     IMAGE_ADD:'image_add',
     IMAGE_REMOVE:'image_add',
     UOM:'uom',
-    PPU:'ppu'
+    PPU:'ppu',
+    CATEGORY:'category',
+    ADD_TAG:'add_tag',
+    REMOVE_TAG:'remove_tag'
 }
 
 const formContext = createContext();
@@ -41,6 +46,16 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
                 return {...state, UOM:update.value};
             case updateActions.PPU:
                 return {...state, PPU:update.value};
+            case updateActions.CATEGORY:
+                return {...state, category:update.value};
+            case updateActions.ADD_TAG:
+                return {...state, tags:[...state.tags, update.value]};
+            case updateActions.REMOVE_TAG:
+                {
+                    let tags = state.tags;
+                    tags = tags.filter((tag) => tags.indexOf(tag)!==tags.indexOf(update.value));
+                    return {...state, tags:tags}
+                }
             default:
                 return state;
         }
@@ -52,13 +67,33 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
         description:'',
         images:[],
         UOM:'number',
-        PPU:''
+        PPU:'',
+        category:null,
+        tags:[]
     });
 
     function validateForm() {
         return formDetails.name !== ''
             && formDetails.UOM !== ''
             && formDetails.PPU !== ''
+            && formDetails.category !== null
+    }
+
+    function addProduct() {
+        const formData = new FormData();
+        formDetails.images.map(image => {
+            formData.append('images', image);
+        })
+        formData.append('product', JSON.stringify(formDetails));
+        axios.post(`${import.meta.env.VITE_BACKEND}/products/`,formData,{ headers:{'Content-Type': 'multipart/form-data'}, withCredentials: true })
+        .then(res => {
+            console.log(res.data);
+            closeForm();           
+        })
+        .catch(error => {
+            console.log(error);
+            closeForm();
+        })
     }
 
     return (
@@ -111,72 +146,10 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
                     }}
                 >
 
-                    {/* <Variants /> */}
-
-                    {/* <div
-                        className='flex-col'
-                        style={{
-                            margin:"10px auto",
-                            width:"100%"
-                        }}
-                    >
-                        <h3
-                        style={{
-                            margin:"auto 5px 5px 5px",
-                            fontSize:"18px",
-                            fontFamily:"Roboto Mono",
-                            fontWeight:"bold"
-                        }}
-                        >
-                            unit of measure 
-                        </h3>
-                        <ThemeProvider theme={darkTheme}>
-                            <Select
-                                value={1}
-                                displayEmpty
-                                inputProps={{ 'aria-label': 'Without label' }}
-                                sx={{
-                                    height:"50px",
-                                    width:"100%"
-                                }}
-                            >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
-                            <MenuItem value={10}>Ten</MenuItem>
-                            <MenuItem value={20}>Twenty</MenuItem>
-                            <MenuItem value={30}>Thirty</MenuItem>
-                            </Select>
-                        </ThemeProvider>
-                    </div> */}
-
                     <SelectUOM />
-
-                    {/* <div
-                        className='flex-col'
-                        style={{
-                            margin:"10px auto"
-                        }}
-                    >
-                        <h3
-                        style={{
-                            margin:"auto 5px 5px 5px",
-                            fontSize:"18px",
-                            fontFamily:"Roboto Mono",
-                            fontWeight:"bold"
-                        }}
-                        >
-                            price per unit 
-                        </h3>
-                        <ThemeProvider theme={darkTheme}>
-                            <OutlinedInput
-                                sx={{height:"50px", width:"100%"}}
-                                placeholder='name'
-                            />
-                        </ThemeProvider>
-                    </div> */}
-
                     <SelectPPU />
+                    <SelectCategory />
+                    <SelectTags />
 
                 </div>
 
@@ -191,7 +164,7 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
                     <ThemeProvider theme={darkTheme}>
                         <Button sx={{height:"35px", marginTop:"10px", marginBottom:"10px", marginLeft:"auto", marginRight:"10px", fontSize:"16px"}} variant="contained" size="medium" color="primary"
                             disabled={!validateForm()}
-                            onClick={() => {console.log(formDetails)}}
+                            onClick={()=>{addProduct()}}
                         >Add</Button>
                     </ThemeProvider>
                 </div>
@@ -432,166 +405,6 @@ function ImageCard({img}) {
     );
 }
 
-function Variants() {
-    return (
-                    <div
-                        className='flex-col'
-                        style={{
-                            margin:"10px auto"
-                        }}
-                    >
-                        <h3
-                        style={{
-                            margin:"auto 5px 5px 5px",
-                            fontSize:"18px",
-                            fontFamily:"Roboto Mono",
-                            fontWeight:"bold"
-                        }}
-                        >
-                            Variants 
-                        </h3>
-                        <VariantCard />
-                        <VariantCard />
-                    </div>
-    );
-}
-
-function VariantCard() {
-
-    const [formDetails,dispatch] = useContext(formContext);
-
-    const [editMode, setEditMode] = useState(false);
-
-    function onEditMode() {
-        setEditMode(true);
-    }
-
-    function offEditMode() {
-        setEditMode(false);
-    }
-
-    return(
-        <div className='flex-row'
-            style={{
-                margin:"10px auto",
-                padding:"10px auto"
-            }}
-        >
-                        <div
-                            className='flex-col'
-                            style={{
-                                margin:"0px",
-                                backgroundColor:"rgb(49, 104, 216,0.18)",
-                                borderRadius:"5px",
-                                width:"80%",
-                                padding:"10px"
-                            }}
-                        >
-                            <div
-                                className='flex-row'
-                            >
-                                {
-                                    editMode && (
-                                        <ThemeProvider theme={darkTheme}>
-                                        <OutlinedInput
-                                            sx={{
-                                                margin:"2px 5px",
-                                                height:"35px",
-                                                backgroundColor:"white",
-                                                fontSize:"16px",
-                                                fontFamily:"Roboto Mono",
-                                                fontWeight:"bold",
-                                                borderColor:"black",
-                                                borderStyle:"solid",
-                                                border:"0px"
-                                            }}
-                                            value={'hello'}
-                                            placeholder='name'
-                                            onChange={(e)=>{
-                                                dispatch({
-                                                    type:updateActions.NAME,
-                                                    value:e.target.value
-                                                })
-                                            }}
-                                        />
-                                        </ThemeProvider>
-                                    )
-                                }
-                                {
-                                    !editMode && (
-                                        <h3
-                                            style={{
-                                                margin:"auto 5px 5px 5px",
-                                                fontSize:"18px",
-                                                fontFamily:"Roboto Mono",
-                                                fontWeight:"bold"
-                                            }}
-                                        >
-                                            changer c
-                                        </h3>
-                                    )
-                                }
-                                {
-                                    editMode && (
-                                        <ThemeProvider theme={darkTheme}>
-                                        <OutlinedInput
-                                            sx={{
-                                                margin:"2px 5px 2px auto",
-                                                height:"35px",
-                                                backgroundColor:"white",
-                                                borderColor:"black",
-                                                borderStyle:"solid",
-                                                border:"0px",
-                                                fontSize:"16px",
-                                                fontFamily:"Roboto Mono",
-                                                fontWeight:"bold",
-                                                width:"120px"
-                                            }}
-                                            value={'hello'}
-                                            placeholder='name'
-                                            onChange={(e)=>{
-                                                dispatch({
-                                                    type:updateActions.NAME,
-                                                    value:e.target.value
-                                                })
-                                            }}
-                                        />
-                                        </ThemeProvider>
-                                    )
-                                }
-                                {
-                                    !editMode && (
-                                        <h3
-                                            style={{
-                                                margin:"auto 5px 5px auto",
-                                                fontSize:"18px",
-                                                fontFamily:"Roboto Mono",
-                                                fontWeight:"bold"
-                                            }}
-                                        >
-                                            1235
-                                        </h3>
-                                    )
-                                }
-                            </div>
-                        </div>
-                        <div className='flex-row' 
-                            style={{margin:"0px 5px"}}
-                        >
-                        <div className='hover:bg-blue'
-                            style={{borderRadius:"5px", padding:"2px 5px", margin:"auto 5px"}}
-                            onClick={onEditMode}
-                        >
-                            <EditIcon fontSize="small"/>
-                        </div>
-                        <div className='hover:bg-red' style={{borderRadius:"5px", padding:"2px 5px", margin:"auto 5px"}}>
-                            <DeleteIcon fontSize="small"/>
-                        </div>
-                        </div>
-        </div>
-    );
-}
-
 function SelectUOM() {
 
     const [formDetails,dispatch] = useContext(formContext);
@@ -680,4 +493,162 @@ function SelectPPU() {
         </div>
     );
 
+}
+
+function SelectCategory() {
+
+    const [formDetails,dispatch] = useContext(formContext);
+    const [categories, setCategories] = useState([]);
+
+    function getCategories(){
+
+        axios.get(`${import.meta.env.VITE_BACKEND}/categories`,{ withCredentials: true })
+        .then(res => {
+            setCategories(res.data);            
+        })
+        .catch(error => {
+            console.log(error);
+        })
+
+    }
+
+    useEffect(
+        getCategories,
+        []
+    )
+
+    return (
+        <div
+            className='flex-col'
+            style={{
+                margin:"10px auto",
+                width:"100%"
+            }}
+        >
+            <h3
+            style={{
+                margin:"auto 5px 5px 5px",
+                fontSize:"18px",
+                fontFamily:"Roboto Mono",
+                fontWeight:"bold"
+            }}
+            >
+                select category <span style={{color:'red'}}>*</span>
+            </h3>
+            <ThemeProvider theme={darkTheme}>
+                <Select
+                    value={formDetails.category}
+                    displayEmpty
+                    inputProps={{ 'aria-label': 'Without label' }}
+                    sx={{
+                        height:"50px",
+                        width:"100%"
+                    }}
+                    onChange={(e) => {
+                        dispatch({
+                            type:updateActions.CATEGORY,
+                            value:e.target.value
+                        })
+                    }}
+                >
+                    {
+                        <MenuItem value={null} disabled>{'select category'}</MenuItem>
+                    }
+                {
+                    categories.map((category, index) => {
+                        return <MenuItem value={category._id} key={index}>{category.name}</MenuItem>
+                    })
+                }
+                </Select>
+            </ThemeProvider>
+        </div>
+    );
+
+}
+
+function SelectTags() {
+
+    const [formDetails,dispatch] = useContext(formContext);
+    const [tags,setTags] = useState([]);
+
+    function getTags(){
+
+        axios.get(`${import.meta.env.VITE_BACKEND}/tags`,{ withCredentials: true })
+        .then(res => {
+            setTags(res.data);            
+        })
+        .catch(error => {
+            console.log(error);
+        })
+
+    }
+
+    useEffect(
+        getTags,
+        []
+    )
+
+    const handleTags = (event) => {
+        const tag = event.target.value[0];
+        
+        if(formDetails.tags.includes(tag)){
+            dispatch({
+                type:updateActions.REMOVE_TAG,
+                value:tag
+            })
+        }else{
+            dispatch({
+                type:updateActions.ADD_TAG,
+                value:tag
+            })
+        }
+      };
+
+    return (
+        <div
+            className='flex-col'
+            style={{
+                margin:"10px auto",
+                width:"100%"
+            }}
+        >
+            <h3
+            style={{
+                margin:"auto 5px 5px 5px",
+                fontSize:"18px",
+                fontFamily:"Roboto Mono",
+                fontWeight:"bold"
+            }}
+            >
+                select tags
+            </h3>
+            <ThemeProvider theme={darkTheme}>
+                <Select
+                    value={[]}
+                    displayEmpty
+                    inputProps={{ 'aria-label': 'Without label' }}
+                    onChange={handleTags}
+                    sx={{
+                        height:"50px",
+                        width:"100%"
+                    }}
+                    multiple
+                >
+                    {
+                        <MenuItem value={null} disabled>{'select tags'}</MenuItem>
+                    }
+                    {
+                        tags.map((tag,index) => {
+                            return (
+                                <MenuItem value={tag._id} key={index}>
+                                    <Checkbox checked={formDetails.tags.indexOf(tag._id) > -1} />
+                                    {tag.name}
+                                </MenuItem>
+                            );
+                        })
+                    }
+                </Select>
+            </ThemeProvider>
+        </div>
+    );
 }

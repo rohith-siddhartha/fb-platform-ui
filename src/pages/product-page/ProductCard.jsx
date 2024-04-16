@@ -3,10 +3,6 @@ import EditIcon from '@mui/icons-material/Edit';
 
 export function ProductCard( {product} ) {
 
-    product = {
-        name:"Milk Bikis"
-    }
-
     return (
         <div className='flex-row page' style={{padding:"10px 5px", margin:"5px 0px", borderRadius:"5px"}}>
             <h1 style={{margin:"auto 5px 5px 5px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>{product.name}</h1>
