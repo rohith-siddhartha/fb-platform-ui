@@ -27,7 +27,7 @@ function LayoutMenu(){
     }
 
     return (
-        <div style={{height:"100vh", display:"flex", alignItems:"center", flexDirection:"column", backgroundColor:"white", width:getMenuWidth(), boxShadow:"4px 0px 8px -4px rgb(49, 104, 216,1)"}}>
+        <div style={{position:'relative', height:"100vh", display:"flex", alignItems:"center", flexDirection:"column", backgroundColor:"white", width:getMenuWidth(), boxShadow:"4px 0px 8px -4px rgb(49, 104, 216,1)"}}>
             <img src={matches?logo:logoS} style={iconStyle} ></img>
             <div style={{display:"flex", flexDirection:"column", alignItems:"center", width:"100%"}}>
                 <Item name={"Outlets"}/>
@@ -51,7 +51,7 @@ function GetUserOptions({setUserOptions}){
     const matches = useMediaQuery('(min-width:1100px)');
 
     return (
-        <div onMouseEnter={()=>{setUserOptions(true)}} onMouseLeave={()=>{setUserOptions(false)}} style={{position:"absolute", boxShadow:"0 3px 10px rgb(0 0 0 / 0.2", left:matches?"100px":"60px", bottom:"80px", zIndex:"1", backgroundColor:"white", display:"flex", flexDirection:"column", alignItems:"center", borderRadius:"6px", width:"120px"}}>
+        <div onMouseEnter={()=>{setUserOptions(true)}} onMouseLeave={()=>{setUserOptions(false)}} style={{position:"fixed", boxShadow:"0 3px 10px rgb(0 0 0 / 0.2)", left:matches?"100px":"60px", bottom:"80px", zIndex:1, backgroundColor:"white", display:"flex", flexDirection:"column", alignItems:"center", borderRadius:"6px", width:"120px"}}>
                     <ThemeProvider theme={darkTheme}>
                         <Button sx={{width:"100px", marginTop:"10px", fontSize:"12px", marginBottom:"0px"}} variant="contained" size="medium" color="primary" >profile</Button>
                     </ThemeProvider>

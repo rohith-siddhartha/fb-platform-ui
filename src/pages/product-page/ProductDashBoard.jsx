@@ -29,7 +29,7 @@ const filterActions = {
 export function ProductDashBoard() {
 
     return (
-        <div className='flex-row page' style={{width:"100%"}}>
+        <div className='flex-row page' style={{minHeight:'100vh', width:"100%", zIndex:0}}>
             <div className="flex-col align-center" style={{boxShadow:"0 1px 2px rgb(0 0 0 / 0.2", margin:"2%", padding:"10px 10px", borderRadius:"5px", width:"75%", backgroundColor:"white"}}>
                 <Products/>
             </div>
@@ -107,7 +107,7 @@ function Products() {
     },[]);
 
     return (
-        <div>
+        <div style={{zIndex:-1}}>
             <productContext.Provider value={[filter, dispatch]}>
             <div className='flex-row' style={{margin:"0px 0px 10px 0px"}}>
                         <div className='flex-row' onClick={() => {setView(!view)}}>

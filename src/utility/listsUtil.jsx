@@ -7,3 +7,10 @@ export const menuList = [{title:"Products",img:productLogo},{title:"Statistics",
 export const UOM = [
     'number', 'kilogram', 'milligram', 'litre'
 ]
+
+export const priceUnitMapping = {
+    'number':'unit',
+    'kilogram':'kg',
+    'milligram':'mg',
+    'litre':'ml'
+}
