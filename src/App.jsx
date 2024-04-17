@@ -17,7 +17,7 @@ function App() {
           <Route path="/outlet/:id" element={<Outlet />} />
           <Route path="/outlet/:id/products" element={<ProductDashBoard />} />
         </Route>
-        <Route path="/login" element={<Login/>}></Route>
+        <Route path="/login" element={<Login/>}/>
       </Routes>
   )
 }
