@@ -12,7 +12,10 @@ function Outlets(){
 
     const matches = useMediaQuery('(min-width:1100px)');
 
+    const navigate = useNavigate();
+
     const [openAddOutletForm, setOpenAddOutletForm] = useState(false);
+    const [trigger, triggerReload] = useState(true);
 
     function openForm() {
         setOpenAddOutletForm(true);
@@ -30,17 +33,20 @@ function Outlets(){
             setOutlets(res.data);        
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
 
     useEffect(
         getOutlets,
-        []
+        [trigger]
     )
     
     return (
-        <div className="flex-column page full-width">
+        <div className="flex-column page full-width" style={{minHeight:'100vh'}}>
             <div style={{margin:"0% 5%", marginTop:"4%", display:'flex', flexDirection:'row'}}>
                 <h1 style={{fontFamily:"Roboto Mono", fontSize:"2.3em", fontWeight:"800"}}>Outlets</h1>
                 <ThemeProvider theme={darkTheme}>
@@ -55,7 +61,7 @@ function Outlets(){
                     </Button>
                 </ThemeProvider>
             </div>
-            <AddOutletForm open={openAddOutletForm} closeForm={closeForm} />
+            <AddOutletForm open={openAddOutletForm} closeForm={closeForm} trigger={trigger} triggerReload={triggerReload}  />
             <hr style={{width:"80%", margin:"0% 5%", height:"2px"}}></hr>
             {/* <div style={{width:"100%", marginLeft:"5%", display:"flex", flexDirection:"row"}}> */}
                 <Grid sx={{width:matches?"80%":"90%", margin:"1% 5%"}} container spacing={2}>
@@ -67,6 +73,9 @@ function Outlets(){
                         );
                     })}
                 </Grid>
+                {outlets.length===0 && 
+                    <h1 style={{margin:'0px auto', fontFamily:"Roboto Mono", fontSize:"1.3em", fontWeight:"800"}}>Create your first Outlet to get started</h1>
+                }
             {/* </div> */}
         </div>
     );
@@ -79,7 +88,7 @@ function OutletComponent({outlet}){
     const navigate = useNavigate();
 
     function navigateToOutlet() {
-        navigate(`/outlet/${outlet._id}`);
+        navigate(`/outlets/${outlet._id}`);
     }
 
     return (

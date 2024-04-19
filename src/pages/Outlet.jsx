@@ -6,7 +6,7 @@ import productLogo from "./../assets/product.png";
 import analyticsLogo from "./../assets/analytics.png";
 import organizationLogo from "./../assets/organize.png";
 import { menuList } from "../utility/listsUtil";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { OutletMenu } from "./OutletMenu";
@@ -17,6 +17,7 @@ export function Outlet(){
 
     const {id} = useParams();
     const [outlet, setOutlet] = useState({});
+    const navigate = useNavigate();
 
     function getOutlet() {
         axios.get(`${import.meta.env.VITE_BACKEND}/outlets/${id}`,{ headers:{'Content-Type': 'multipart/form-data'}, withCredentials: true })
@@ -24,6 +25,9 @@ export function Outlet(){
             setOutlet(res.data);        
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }

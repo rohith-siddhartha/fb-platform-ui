@@ -3,7 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { darkTheme } from "../utility/themes";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 
 const filterOptions = {
@@ -19,6 +19,7 @@ export function OutletMenu() {
     const {id} = useParams();
     const [filter, setFilter] = useState(filterOptions.IN_MENU);
     const [trigger, setTrigger]= useState(true);
+    const navigate = useNavigate();
 
     const handleClickCategories = (event) => {
         setAnchorEl(event.currentTarget);
@@ -36,6 +37,9 @@ export function OutletMenu() {
             setProducts(res.data.products); 
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
@@ -77,12 +81,17 @@ export function ProductCard( {product, trigger, filter, setTrigger} ) {
 
     const {id} = useParams();
 
+    const navigate = useNavigate();
+
     const addProductToMenu = async ()=>{
         axios.post(`${import.meta.env.VITE_BACKEND}/menu/product/add/${id}`,{productId:product._id},{withCredentials: true })
         .then(res => {
             setTrigger(!trigger); 
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
@@ -93,6 +102,9 @@ export function ProductCard( {product, trigger, filter, setTrigger} ) {
             setTrigger(!trigger); 
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
@@ -171,6 +183,8 @@ export function Categories() {
 
     const [add, setAdd] = useState(false);
 
+    const navigate = useNavigate();
+
     function getView() {
         return view?'block':'none';
     }
@@ -182,6 +196,9 @@ export function Categories() {
             setCategories(res.data);            
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 

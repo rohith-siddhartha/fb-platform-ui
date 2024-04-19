@@ -10,6 +10,7 @@ import { createContext, useContext, useEffect, useReducer, useRef, useState } fr
 import { UOM } from '../../utility/listsUtil';
 import axios from 'axios';
 import { CheckBox } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const updateActions = {
     NAME:'name',
@@ -25,7 +26,7 @@ const updateActions = {
 
 const formContext = createContext();
 
-export function AddProductForm({open, closeForm, edit, editProduct}) {
+export function AddProductForm({open, closeForm, edit, editProduct, trigger, triggerReload}) {
 
     function updateForm(state, update) {
 
@@ -72,6 +73,8 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
         tags:[]
     });
 
+    const navigate = useNavigate();
+
     function validateForm() {
         return formDetails.name !== ''
             && formDetails.UOM !== ''
@@ -87,10 +90,13 @@ export function AddProductForm({open, closeForm, edit, editProduct}) {
         formData.append('product', JSON.stringify(formDetails));
         axios.post(`${import.meta.env.VITE_BACKEND}/products/`,formData,{ headers:{'Content-Type': 'multipart/form-data'}, withCredentials: true })
         .then(res => {
-            console.log(res.data);
+            triggerReload(!trigger);
             closeForm();           
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
             closeForm();
         })
@@ -633,6 +639,7 @@ function SelectTags() {
                         width:"100%"
                     }}
                     multiple
+                    placeholder='select tags'
                 >
                     {
                         <MenuItem value={null} disabled>{'select tags'}</MenuItem>

@@ -7,6 +7,7 @@ import { Button, ThemeProvider } from "@mui/material";
 import { darkTheme } from "../utility/themes";
 import { getIcon } from "../utility/icons";
 import useMediaQuery from '@mui/material/useMediaQuery';
+import axios from "axios";
 
 
 function LayoutMenu(){
@@ -50,13 +51,27 @@ function GetUserOptions({setUserOptions}){
 
     const matches = useMediaQuery('(min-width:1100px)');
 
+    const navigate = useNavigate();
+
+    function logout() {
+        axios.post(`${import.meta.env.VITE_BACKEND}/user/logout`,{},{withCredentials: true })
+        .then(res => {
+            navigate('/login');
+        })
+        .catch(error => {
+            console.log(error);
+        })
+    }
+
     return (
         <div onMouseEnter={()=>{setUserOptions(true)}} onMouseLeave={()=>{setUserOptions(false)}} style={{position:"fixed", boxShadow:"0 3px 10px rgb(0 0 0 / 0.2)", left:matches?"100px":"60px", bottom:"80px", zIndex:1, backgroundColor:"white", display:"flex", flexDirection:"column", alignItems:"center", borderRadius:"6px", width:"120px"}}>
                     <ThemeProvider theme={darkTheme}>
                         <Button sx={{width:"100px", marginTop:"10px", fontSize:"12px", marginBottom:"0px"}} variant="contained" size="medium" color="primary" >profile</Button>
                     </ThemeProvider>
                     <ThemeProvider theme={darkTheme}>
-                        <Button sx={{width:"100px", marginTop:"10px", fontSize:"12px", marginBottom:"10px"}} variant="contained" size="medium" color="primary" >log out</Button>
+                        <Button sx={{width:"100px", marginTop:"10px", fontSize:"12px", marginBottom:"10px"}} variant="contained" size="medium" color="primary"
+                            onClick={logout}
+                         >log out</Button>
                     </ThemeProvider>
         </div>
     );
@@ -69,9 +84,13 @@ function Item({name}){
     const matches = useMediaQuery('(min-width:1100px)');
 
     function isActive(){
-        if(("/"+name.toLowerCase()).startsWith(location.pathname)){
+        // if(("/"+name.toLowerCase()).startsWith(location.pathname)){
+        //     return "#ebebeb";
+        // }
+        if(location.pathname.includes(name.toLowerCase())){
             return "#ebebeb";
         }
+        console.log(location.pathname);
     }
 
     return (

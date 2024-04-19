@@ -3,6 +3,7 @@ import { darkTheme } from '../utility/themes';
 import { ThemeProvider } from '@emotion/react';
 import { createContext, useContext, useReducer, useRef } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const updateActions = {
     NAME:'name',
@@ -12,7 +13,9 @@ const updateActions = {
 
 const formContext = createContext();
 
-export function AddOutletForm({open, closeForm, edit, editProduct}) {
+export function AddOutletForm({open, closeForm, edit, editProduct, trigger, triggerReload}) {
+
+    const navigate = useNavigate();
 
     function updateForm(state, update) {
 
@@ -48,9 +51,13 @@ export function AddOutletForm({open, closeForm, edit, editProduct}) {
         formData.append('outlet', JSON.stringify(formDetails));
         axios.post(`${import.meta.env.VITE_BACKEND}/outlets/`,formData,{ headers:{'Content-Type': 'multipart/form-data'}, withCredentials: true })
         .then(res => {
+            triggerReload(!trigger);
             closeForm();           
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
             closeForm();
         })

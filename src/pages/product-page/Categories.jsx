@@ -7,6 +7,7 @@ import { OutlinedInput, ThemeProvider } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { darkTheme } from '../../utility/themes';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export function Categories() {
 
@@ -17,6 +18,7 @@ export function Categories() {
     const [add, setAdd] = useState(false);
 
     const [triggerReload, setTriggerReload] = useState(true);
+    const navigate = useNavigate();
 
     function getView() {
         return view?'block':'none';
@@ -29,6 +31,9 @@ export function Categories() {
             setCategories(res.data);            
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
@@ -57,7 +62,7 @@ export function Categories() {
                             <h1 style={{margin:"0px 5px", fontSize:"22px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> + </h1>
                         </div>
                     </div>
-                <div style={{display:getView(), margin:"auto 5px", paddingTop:"5px", borderTop:"1px", borderStyle:"solid", borderColor:"black"}}>
+                <div style={{display:getView(), margin:"auto 5px", paddingTop:"5px", borderTop:categories.length===0?'0px':"1px", borderStyle:"solid", borderColor:"black"}}>
                     {add === true  &&
                         <AddTile setAdd={setAdd} triggerReload={triggerReloadFunc} />
                     }
@@ -78,6 +83,8 @@ function Tile({category, triggerReloadFunc}) {
     const [editMode, setEditMode] = useState(false);
     const [categoryNew, setCategoryNew] = useState(category.name);
 
+    const navigate = useNavigate();
+
     function updateCategory() {
 
         axios.patch(`${import.meta.env.VITE_BACKEND}/categories/${category._id}`,
@@ -88,6 +95,9 @@ function Tile({category, triggerReloadFunc}) {
             setEditMode(false);           
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
             setEditMode(false);
         })
@@ -102,6 +112,9 @@ function Tile({category, triggerReloadFunc}) {
             triggerReloadFunc();          
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
@@ -161,6 +174,8 @@ function AddTile({setAdd, triggerReload}) {
 
     const [tagNew, setTagNew] = useState('');
 
+    const navigate = useNavigate();
+
     function createCategory() {
 
         axios.post(`${import.meta.env.VITE_BACKEND}/categories`,
@@ -171,6 +186,9 @@ function AddTile({setAdd, triggerReload}) {
             triggerReload()   
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             setAdd(false);
         })
     }

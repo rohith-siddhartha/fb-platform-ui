@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { darkTheme } from "../utility/themes";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { priceUnitMapping } from "../utility/listsUtil";
 import { Category } from "@mui/icons-material";
 
@@ -22,6 +22,8 @@ export function CreateOrder() {
     const [selectedTags, setSelectedTags] = useState([]);
     const {id} = useParams();
 
+    const navigate = useNavigate();
+
     const [order, setOrder] = useState({
         products:[],
         customerName:'',
@@ -37,6 +39,9 @@ export function CreateOrder() {
             setTags(res.data.tags);
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
@@ -45,9 +50,16 @@ export function CreateOrder() {
 
         axios.post(`${import.meta.env.VITE_BACKEND}/orders`,{...order, timestamp:Date.now()},{withCredentials: true })
         .then(res => {
-            console.log(res.data);
+            setOrder({
+                products:[],
+                customerName:'',
+                outletId:id
+            });
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
@@ -103,7 +115,7 @@ export function CreateOrder() {
                 <h1>hello + {order.products.length}</h1> */}
                 <div className='flex-col page' style={{padding:'20px', borderRadius:5, width:'100%'}}>
                     <h1 style={{margin:"auto 5px 0px 5px", fontSize:"24px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>Order</h1>
-                    <div className='flex-col' style={{padding:'10px 0px', margin:'10px 0px', borderTop:1, borderBottom:1, borderStyle:'solid', borderColor:'black'}}>
+                    <div className='flex-col' style={{padding:'10px 0px', margin:'10px 0px', borderTop:order.products.length===0?0:1, borderBottom:order.products.length===0?0:1, borderStyle:'solid', borderColor:'black'}}>
                         {
                             order.products.map((product, index) => {
                                 return (
@@ -116,10 +128,13 @@ export function CreateOrder() {
                             })
                         }
                     </div>
-                    <div className='flex-row'>
+                    {order.products.length===0 && <div className='flex-row'>
+                        <h1 style={{margin:"5px 5px 0px 5px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>Add Prodcuts</h1>
+                    </div>}
+                    {order.products.length>0 && <div className='flex-row'>
                         <h1 style={{margin:"5px 5px 0px 5px", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>Total</h1>
                         <h1 style={{margin:"5px 5px 0px auto", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>{'Rs.'}{calculateTotal()}</h1>
-                    </div>
+                    </div>}
                 </div>
                 <NameField order={order} setOrder={setOrder} />
                 <div style={{width:'100%', margin:'20px 0px'}}>

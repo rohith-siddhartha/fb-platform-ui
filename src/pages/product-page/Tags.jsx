@@ -7,6 +7,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { OutlinedInput, ThemeProvider } from '@mui/material';
 import { darkTheme } from '../../utility/themes';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export function Tags() {
 
@@ -17,6 +18,8 @@ export function Tags() {
     const [add, setAdd] = useState(false);
 
     const [triggerReload, setTriggerReload] = useState(true);
+
+    const navigate = useNavigate();
 
     function getView() {
         return view?'block':'none';
@@ -29,6 +32,9 @@ export function Tags() {
             setTags(res.data);            
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
@@ -58,7 +64,7 @@ export function Tags() {
                             <h1 style={{margin:"0px 5px", fontSize:"22px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> + </h1>
                         </div>
                     </div>
-                <div style={{display:getView(), margin:"auto 5px", paddingTop:"5px", borderTop:"1px", borderStyle:"solid", borderColor:"black"}}>
+                <div style={{display:getView(), margin:"auto 5px", paddingTop:"5px", borderTop:tags.length===0?'0px':"1px", borderStyle:"solid", borderColor:"black"}}>
                     {add === true  &&
                         <AddTile setAdd={setAdd} triggerReloadFunc={triggerReloadFunc} />
                     }
@@ -79,6 +85,8 @@ function Tile({tag, triggerReloadFunc}) {
     const [editMode, setEditMode] = useState(false);
     const [tagNew, setTagNew] = useState(tag.name);
 
+    const navigate = useNavigate();
+
     function updateTag() {
 
         axios.patch(`${import.meta.env.VITE_BACKEND}/tags/${tag._id}`,
@@ -89,6 +97,9 @@ function Tile({tag, triggerReloadFunc}) {
             setEditMode(false);           
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
             setEditMode(false);
         })
@@ -103,6 +114,9 @@ function Tile({tag, triggerReloadFunc}) {
             triggerReloadFunc();          
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
@@ -162,6 +176,8 @@ function AddTile({tag, setAdd, triggerReloadFunc}) {
 
     const [tagNew, setTagNew] = useState(tag);
 
+    const navigate = useNavigate();
+
     function createTag() {
 
         axios.post(`${import.meta.env.VITE_BACKEND}/tags`,
@@ -172,6 +188,9 @@ function AddTile({tag, setAdd, triggerReloadFunc}) {
             triggerReloadFunc()   
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             setAdd(false);
         })
     }

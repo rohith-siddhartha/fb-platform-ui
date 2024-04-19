@@ -2,54 +2,75 @@ import { Button, TextField, ThemeProvider } from "@mui/material";
 import "@fontsource/roboto-mono";
 import { darkTheme } from "../utility/themes";
 import { Link, useNavigate } from "react-router-dom";
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
+import logo from './../assets/logo.png'
+import logoS from './../assets/logo-s.png'
+
+const iconStyle = {
+        marginTop:"40px",
+        marginBottom:"40px",
+        width:"200px",
+        height:"200px"
+    }
 
 function Login(){
     return (
-        <div style={{display:"flex", flexDirection:"row"}}>
-            <div style={{backgroundColor:"black", height:"100%", width:"50%"}}>
-                hey
-            </div>
-            <div style={{width:"50%", display:"flex", alignItems:"center", flexDirection:"column"}}>
-                <LoginComponent/>
+        <div style={{display:"flex", flexDirection:"column", height:'100vh', width:'100%', justifyContent:'center', alignItems:"center"}}>
+            <div style={{display:"flex", flexDirection:"column", width:'50%', justifyContent:'center', alignItems:"center"}}>
+                <div style={{ margin:'10px', alignItems:'flex-start', flexDirection:"column"}}>
+                    <img src={logo} style={iconStyle} ></img>
+                </div>
+                <div style={{width:"100%", display:"flex", margin:'10px', alignItems:'center', flexDirection:"column"}}>
+                    <LoginComponent/>
+                </div>
             </div>
         </div>
     );
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
 }
 
 function LoginComponent(){
 
     const navigate = useNavigate();
 
-    const [mobile, setMobile] = React.useState("");
-
-    const [step, setStep] = React.useState("mobile");
-
-
-    function setMob(m){
-        setMobile(m);
-    }
+    const [email, setEmail] = React.useState("");
+    const [otp, setOtp] = useState('');
+    const [step, setStep] = React.useState("email");
 
     function validateMobile(){
 
-        if(mobile.length!==10){
+        if(validateEmail(email)){
             console.log("errpr");
             return;
         }
 
-        setStep("a");
+        setStep("otp");
 
+    }
+
+    function getOtp() {
+        axios.post(`${import.meta.env.VITE_BACKEND}/auth/otp`,{email:email},{withCredentials: true })
+        .then(res => {
+            setStep('otp');
+        })
+        .catch(error => {
+            console.log(error);
+        })
     }
 
     function loginUser(){
 
         axios.post(`${import.meta.env.VITE_BACKEND}/auth/login`,{
-            mobile
+            email,
+            otp
         },
         {withCredentials:true})
-        .then(data => {
-            console.log(data);
+        .then(res => {
             navigate("/");
         })
         .catch(error => {
@@ -59,90 +80,57 @@ function LoginComponent(){
     }
 
     return (
-        <div style={{width:"100%", marginTop:"20%", display:"flex", flexDirection:"column"}}>
+        <div style={{width:"100%", display:"flex", flexDirection:"column", alignItems:'center'}}>
             <h1 style={{fontFamily:"Roboto Mono", fontSize:"2em", fontWeight:"bolder"}}>Login</h1>
             {/* <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"500"}}><b>Hi Mysore</b> | <span style={{cursor:"pointer", textDecoration:"underline", color:"blue"}}>not you?</span></h3> */}
-            { step==="mobile" && <MobileValidation
-            login={loginUser}
-            mobile={mobile}
-            setMobile={setMob}
+            { step==="email" && <MobileValidation
+            setStep={setStep}
+            email={email}
+            setEmail={setEmail}
+            getOtp={getOtp}
             /> }
-            { step==="a" && <AuthOneOTP loginUser={loginUser} /> }
-            { step==="b" && <AuthPASSorOTP/> }
-            { step==="c" && <AuthPASSandOTP/> }
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"500"}}>trouble logging in? <Link to="/customer-care"> contact our team </Link> </h3>
+            { step==="otp" && <AuthOneOTP otp={otp} setOtp={setOtp} login={loginUser} /> }
+            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"500"}}>trouble logging in? <span style={{textDecoration:'underline'}}>contact our team</span> </h3>
         </div>
     );
 }
 
 
 
-function MobileValidation( {mobile, setMobile, login} ){
+function MobileValidation( {email, setEmail, getOtp} ){
 
     function setMobileWithValidation(event) {
         const mob = event.target.value;
-        if(mob.length>10) return;
-        setMobile(mob);
-    }
-
-    function validateMobile(mobileNumber) {
-        const mobileNumberRegex = /^[0-9]{10}$/;
-        return mobileNumberRegex.test(mobileNumber);
+        setEmail(mob);
     }
 
     return (
         <>
-            <h3 style={{marginTop:'10px', marginBottom:'10px', fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Mobile Number</h3>
+            <h3 style={{marginTop:'10px', marginBottom:'10px', fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Email</h3>
             <ThemeProvider theme={darkTheme}>
-                <TextField sx={{width:"50%", marginBottom:"20px", marginTop:'10px'}} id="outlined-controlled" defaultValue={mobile} value={mobile} placeholder="Enter your mobile number" onChange={setMobileWithValidation} />
+                <TextField sx={{width:"50%", marginBottom:"20px", marginTop:'10px'}} id="outlined-controlled" value={email} placeholder="Enter Email" onChange={setMobileWithValidation} />
             </ThemeProvider>
             <ThemeProvider theme={darkTheme}>
-                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" disabled={!validateMobile(mobile)} onClick={()=>{login()}}>NEXT</Button>
-            </ThemeProvider>
-        </>
-    );
-}
-
-function AuthPASSorOTP(){
-
-
-    return (
-        <>
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Enter password</h3>
-            <TextField sx={{width:"50%", marginBottom:"5px"}} id="outlined-controlled" placeholder="Enter your password" />
-            <h3 style={{cursor:"pointer", fontFamily:"Roboto Mono",  textDecoration:"underline", color:"blue", marginBottom:"30px", fontSize:"1em", fontWeight:"600"}}>login with OTP</h3>
-            <ThemeProvider theme={darkTheme}>
-                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" onClick={()=>{validateMobile();}}>Log In</Button>
+                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" disabled={!validateEmail(email)}
+                onClick={getOtp}>NEXT</Button>
             </ThemeProvider>
         </>
     );
 }
 
-function AuthOneOTP( {loginUser} ){
+function AuthOneOTP( {otp,setOtp,login} ){
 
 
     return (
         <>
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Enter the OTP</h3>
-            <TextField sx={{width:"50%", marginBottom:"35px"}} id="outlined-controlled" placeholder="Enter the OTP sent to your mobile" />
+            <h3 style={{marginTop:'10px', marginBottom:'10px', fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Enter the OTP</h3>
             <ThemeProvider theme={darkTheme}>
-                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" onClick={()=>{loginUser();}}>Log In</Button>
+            <TextField sx={{width:"50%", marginBottom:"35px", marginTop:'10px'}} id="outlined-controlled" placeholder="Enter the OTP sent to your mobile" value={otp}
+                onChange={(e)=>{setOtp(e.target.value)}}
+            />
             </ThemeProvider>
-        </>
-    );
-}
-
-function AuthPASSandOTP(){
-
-
-    return (
-        <>
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Enter password</h3>
-            <TextField sx={{width:"50%", marginBottom:"15px"}} id="outlined-controlled" placeholder="Enter your password" />
-            <h3 style={{fontFamily:"Roboto Mono", fontSize:"1em", fontWeight:"600"}}>Enter the OTP</h3>
-            <TextField sx={{width:"50%", marginBottom:"35px"}} id="outlined-controlled" placeholder="Enter the OTP sent to your mobile" />
             <ThemeProvider theme={darkTheme}>
-                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" onClick={()=>{validateMobile();}}>Log In</Button>
+                <Button sx={{width:"50%", marginBottom:"20px"}} variant="contained" size="large" color="primary" onClick={login}>Log In</Button>
             </ThemeProvider>
         </>
     );

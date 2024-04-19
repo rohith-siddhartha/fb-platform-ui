@@ -18,6 +18,7 @@ import { ProductCard } from './ProductCard';
 import { CheckBox } from '@mui/icons-material';
 import axios from 'axios';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const filterActions = {
     SEARCH_KEY:'search_key',
@@ -86,6 +87,10 @@ function Products() {
         setOpenAddProductForm(true);
     }
 
+    const [trigger, triggerReload] = useState(true);
+
+    const navigate = useNavigate();
+
     function closeForm() {
         setEdit(false);
         setEditProduct(null);
@@ -98,13 +103,16 @@ function Products() {
             setProducts(res.data); 
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
     }
 
     useEffect(() => {
         getProducts();
-    },[]);
+    },[trigger]);
 
     return (
         <div style={{zIndex:-1}}>
@@ -125,7 +133,7 @@ function Products() {
                                     add +
                             </Button>
                         </ThemeProvider>
-                        <AddProductForm open={openAddProductForm} edit={edit} editProduct={editProduct} closeForm={closeForm} />
+                        <AddProductForm open={openAddProductForm} edit={edit} editProduct={editProduct} closeForm={closeForm} trigger={trigger} triggerReload={triggerReload} />
                         </div>
                 </div>
                 <Filters getProducts={getProducts} />
@@ -135,6 +143,9 @@ function Products() {
                             <ProductCard product={product} key={index} />
                         );
                     })}
+                    {products.length===0 &&
+                        <h1 style={{margin:"10px auto", fontSize:"18px", fontFamily:"Roboto Mono", fontWeight:"bold"}}> Add your first product to get started </h1>
+                    }
                 </div>
             </productContext.Provider>
         </div>
@@ -170,14 +181,17 @@ function Filters({getProducts}) {
 
     return (
         <div className='flex-row' style={{padding:"10px 0px", margin:"10px 0px"}}>
+            <ThemeProvider theme={darkTheme}>
             <OutlinedInput
                 onChange={(event)=>{dispatch({
                     type:filterActions.SEARCH_KEY,
                     value:event.target.value
                 })}}
+                placeholder='search'
                 value={filter.searchKey}
                 sx={{height:"50px"}}
             />
+            </ThemeProvider>
             <ThemeProvider theme={darkTheme}>
                 <Button sx={{height:"35px", margin:"auto 10px", fontSize:"16px"}} variant="contained" size="small" color="primary" onClick={getProducts} >search</Button>
             </ThemeProvider>
@@ -209,6 +223,9 @@ function SelectCategory({open, anchorEl, handleClose}) {
 
     const [filter,dispatch] = useContext(productContext);
 
+
+    const navigate = useNavigate();
+
     function setCategory(category) {
         dispatch({
             type:filterActions.CATEGORY,
@@ -223,6 +240,9 @@ function SelectCategory({open, anchorEl, handleClose}) {
             setCategories(res.data);            
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
@@ -253,7 +273,7 @@ function SelectCategory({open, anchorEl, handleClose}) {
                     {categories.map((cate,index) => {
                         return (
                             <div className={( filter.category && cate._id===filter.category)?'bg-blue':'hover:bg-blue'} style={{padding:"5px"}} key={index}
-                                onClick={()=>setCategory(cate)}
+                                onClick={()=>{setCategory(cate);handleClose()}}
                             >
                                 <h1 style={{margin:"auto 5px 5px 5px", fontSize:"15px", fontFamily:"Roboto Mono", fontWeight:"bold"}}>{cate.name}</h1>
                             </div>
@@ -270,6 +290,7 @@ function SelectTags({open, anchorEl, handleClose}) {
 
     const [tags,setTags] = useState([]);
     const [filter,dispatch] = useContext(productContext);
+    const navigate = useNavigate();
 
     function addTag(tag) {
         dispatch({
@@ -292,6 +313,9 @@ function SelectTags({open, anchorEl, handleClose}) {
             setTags(res.data);            
         })
         .catch(error => {
+            if(error.response.data.loginError){
+                navigate('/login');
+            }
             console.log(error);
         })
 
